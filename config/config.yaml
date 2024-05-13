@@ -1,0 +1,25 @@
+registry:
+  type: "etcd"
+  host: "etcd1"
+  port: 2379
+  root: "brodagroupsoftware"
+  domains:
+    products:
+      description: "Product and artifacts informatino"
+      key: "/products"
+    users:
+      description: "User and role information"
+      key: "/users"
+    auths:
+      description: "Authentication (login/logout)"
+      key: "/auths"
+    carts:
+      description: "Carts containing artifacts"
+      key: "/carts"
+    orders:
+      description: "Purchased orders"
+      key: "/orders"
+
+proxy:
+  host: "bgs-dm-proxy-srv"
+  port: 8000
