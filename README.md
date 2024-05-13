@@ -1,16 +1,16 @@
-# bgs-dm-registrar-srv - Ecosystem Platform Registrar
+# osc-dm-registrar-srv - Ecosystem Platform Registrar
 
 The Ecosystem Platform Registrar is a registration service for Broda Group Software's
 Ecosystem Platform  allowing data products, publishers, and subscribers
 to be made known to the Ecosystem Platform
 
 Full documentation is available in in the
-[bgs-dm-mesh-doc](https://github.com/brodagroupsoftware/bgs-dm-mesh-doc)
+[osc-dm-mesh-doc](https://github.com/brodagroupsoftware/osc-dm-mesh-doc)
 repo.
 
 This application interacts with other applications. You can run
 the full set of applications by following instructions in the
-[bgs-dm-mesh-doc](https://github.com/brodagroupsoftware/bgs-dm-mesh-doc)
+[osc-dm-mesh-doc](https://github.com/brodagroupsoftware/osc-dm-mesh-doc)
 repo.
 
 The remaining sections explain how to Dockerize the application
@@ -70,7 +70,7 @@ $PROJECT_DIR/bin/dockerize.sh
 This service is designed to work with other services and
 can be started with the full set of Ecosystem Platform components.
 Information about starting the full set of components
-can be found [here](https://github.com/brodagroupsoftware/bgs-dm-mesh-srv)
+can be found [here](https://github.com/brodagroupsoftware/osc-dm-mesh-srv)
 
 A standalone proxy server can be started for testing purposes
 using the following command:
