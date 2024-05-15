@@ -651,6 +651,41 @@ async def registrar_orders_email_get(email: str):
 
 
 #####
+# MONITOR
+#####
+
+
+@app.get(ENDPOINT_PREFIX + "/health")
+async def registrar_health_get():
+    """
+    Get health information
+    """
+    logger.info("START: Get health information")
+
+    response = {
+        "health": "OK"
+    }
+
+    logger.info(f"DONE: Get health information, response:{response}")
+    return response
+
+
+@app.get(ENDPOINT_PREFIX + "/metrics")
+async def registrar_metrics_get():
+    """
+    Get metrics information
+    """
+    logger.info("START: Get metrics information")
+
+    response = {
+        "metrics": "some-metrics"
+    }
+
+    logger.info(f"DONE: Get metrics information, response:{response}")
+    return response
+
+
+#####
 # INTERNAL
 #####
 
