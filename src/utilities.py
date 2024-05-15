@@ -20,13 +20,7 @@ async def httprequest(host: str, port: int, service: str, method: str,
              data: Optional[Any]=None, obj: Optional[Dict]=None,
              files: Optional[Any]=None, headers: Optional[Dict]=None) -> Any:
     """
-    Generic request function using the requests library.
-    On success, a True boolean is returned.
-    On errors, a log message is issued, but only
-    a False boolean will be returned.
-    To simplify execution, exceptions are purposely NOT
-    caught (but they are logged) since this expects to be
-    used in a CLI.
+    Generic request function using the ASYNC httpx library.
 
     Parameters:
     - service (str): The URL of the service to which the request is made
@@ -44,9 +38,10 @@ async def httprequest(host: str, port: int, service: str, method: str,
     method = method.upper()
     logger.info(f"Request method:{method} url:{url}")
 
+    if not headers:
+        headers = {"Content-Type": "application/json"}
+
     try:
-        if not headers:
-            headers = {"Content-Type": "application/json"}
         async with httpx.AsyncClient() as client:
             response = await client.request(method, url, headers=headers, json=obj, data=data, files=files)
             response.raise_for_status()
@@ -75,6 +70,63 @@ async def httprequest(host: str, port: int, service: str, method: str,
 
     except httpx.ReadTimeout:
         msg = f"Read timeout for {url}"
+        logger.error(msg)
+        raise BgsException(msg)
+
+    except Exception as e:
+        msg = f"Unexpected error for {url}: {e}"
+        logger.error(msg)
+        raise BgsException(msg)
+
+def shttprequest(host: str, port: int, service: str, method: str,
+             data: Optional[Any]=None, obj: Optional[Dict]=None,
+             files: Optional[Any]=None, headers: Optional[Dict]=None) -> Any:
+    """
+    Generic request function using the SYNCHRONOUS requests library.
+
+    Parameters:
+    - service (str): The URL of the service to which the request is made
+    - method (str): The HTTP method to use (e.g., GET, POST, PUT, DELETE)
+    - data (any, optional): Data to send in the request body, typically for POST requests
+    - obj (dict, optional): JSON object to send in the request body
+    - files (any, optional): Files to send in the request body
+
+    Returns:
+    - requests.Response: The response object
+    """
+    logger.info(f"Issue request, method:{method} data:{data} obj:{obj} files:{files}")
+
+    url = f"http://{host}:{port}{service}"
+    method = method.upper()
+    logger.info(f"Request method:{method} url:{url}")
+
+    if not headers:
+        headers = {"Content-Type": "application/json"}
+
+    try:
+        import requests
+        response = requests.request(method, url, headers=headers, json=obj, data=data, files=files)
+        response.raise_for_status()
+        return response.json()
+
+    except requests.HTTPError as e:
+        details = e.response.json().get("detail", str(e))
+        msg = f"HTTP status error for {url}: {details}"
+        logger.error(msg)
+        raise BgsException(msg)
+
+    except requests.Timeout:
+        msg = f"Connection timeout for {url}"
+        logger.error(msg)
+        raise BgsException(msg)
+
+    except requests.ConnectionError:
+        msg = f"Connection error for {url}"
+        logger.error(msg)
+        raise BgsException(msg)
+
+    except requests.RequestException:
+        msg = f"Request error for {url}"
         logger.error(msg)
         raise BgsException(msg)
 
