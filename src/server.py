@@ -26,6 +26,7 @@ import models
 from bgsexception import BgsException, BgsNotFoundException
 import state
 from registry import Registry
+from middleware import LoggingMiddleware
 
 
 # Set up logging
@@ -49,6 +50,7 @@ STATE_DOMAINS="domains"
 
 # Set up server
 app = FastAPI()
+app.add_middleware(LoggingMiddleware)
 
 
 #####
@@ -56,30 +58,16 @@ app = FastAPI()
 #####
 
 
-@app.post(ENDPOINT_PREFIX + "/initialization")
-async def initialize_post():
-    """
-    Initialize server
-    """
-    response = None
-    logger.info("START: Initialization")
-
-    logger.info("DONE: Initialization")
-    return response
-
-
 @app.get(ENDPOINT_PREFIX + "/dump")
 async def registrar_dump_get():
     """
     Dump all keys
     """
-    logger.info("START: Dump all keys")
 
     response = None
     registry: Registry = state.gstate(STATE_REGISTRY)
     response = await registry.dump()
 
-    logger.info(f"DONE: Dump all keys, response:{response}")
     return response
 
 
@@ -93,7 +81,6 @@ async def registrar_products_post(product: models.Product):
     """
     Register product
     """
-    logger.info(f"START: Register product:{product}")
 
     response = None
     try:
@@ -104,7 +91,6 @@ async def registrar_products_post(product: models.Product):
         logger.error(msg)
         raise HTTPException(status_code=500, detail=msg)
 
-    logger.info(f"DONE: Register product:{product}, response:{response}")
     return response
 
 
@@ -113,18 +99,16 @@ async def registrar_products_get():
     """
     Get registered products
     """
-    logger.info("START: Get registered products")
 
     response = None
     registry: Registry = state.gstate(STATE_REGISTRY)
     response = await registry.retrieve_products()
 
-    logger.info(f"DONE: Get Get registered products, response:{response}")
     return response
 
 
 @app.post(ENDPOINT_PREFIX + "/products/uuids/")
-async def registrar_products_uuids_post(request: Dict):
+async def registrar_products_uuids_post(data: Dict):
     """
     Get registered products matching UUIDs
 
@@ -135,16 +119,14 @@ async def registrar_products_uuids_post(request: Dict):
     recommend using a trailing "/" for the endpoint; Hence
     the endpoint is "/products/uuids/" instead of "/products/uuids".
     """
-    logger.info(f"START: Get registered products request:{request}")
 
-    uuids = request["uuids"]
+    uuids = data["uuids"]
     logger.info(f"using uuids:{uuids}")
 
     response = None
     registry: Registry = state.gstate(STATE_REGISTRY)
     response = await registry.retrieve_products_uuids(uuids)
 
-    logger.info(f"DONE: Get registered products uuids:{uuids}, response:{response}")
     return response
 
 
@@ -153,13 +135,11 @@ async def registrar_products_namespace_get(namespace: str):
     """
     Get registered products by namespace
     """
-    logger.info(f"START: Get registered products namespace:{namespace}")
 
     response = None
     registry: Registry = state.gstate(STATE_REGISTRY)
     response = await registry.retrieve_product_namespace(namespace)
 
-    logger.info(f"DONE: Get registered products namespace:{namespace}, response:{response}")
     return response
 
 
@@ -168,13 +148,11 @@ async def registrar_products_namespace_name_get(namespace: str, name: str):
     """
     Get registered product by namespace and name
     """
-    logger.info(f"START: Get registered products namespace:{namespace} name:{name}")
 
     response = None
     registry: Registry = state.gstate(STATE_REGISTRY)
     response = await registry.retrieve_product_namespace_name(namespace, name)
 
-    logger.info(f"DONE: Get registered products namespace:{namespace} name:{name}, response:{response}")
     return response
 
 
@@ -183,13 +161,11 @@ async def registrar_products_email_get(email: str):
     """
     Get registered product by namespace and name
     """
-    logger.info(f"START: Get registered products email:{email}")
 
     response = None
     registry: Registry = state.gstate(STATE_REGISTRY)
     response = await registry.retrieve_product_email(email)
 
-    logger.info(f"DONE: Get registered products email:{email}, response:{response}")
     return response
 
 
@@ -198,7 +174,6 @@ async def registrar_products_uuid_get(uuid: str):
     """
     Get registered product
     """
-    logger.info(f"START: Get registered product uuid:{uuid}")
 
     response = None
     registry: Registry = state.gstate(STATE_REGISTRY)
@@ -208,18 +183,16 @@ async def registrar_products_uuid_get(uuid: str):
         logger.error(msg)
         raise HTTPException(status_code=404, detail=msg)
 
-    logger.info(f"DONE: Get registered products uuid:{uuid}, response:{response}")
     return response
 
 
 @app.post(ENDPOINT_PREFIX + "/products/search")
-async def registrar_products_search_get(request: Dict):
+async def registrar_products_search_get(data: Dict):
     """
     Search products
     """
-    logger.info(f"START: Search product request:{request}")
 
-    if "query" not in request:
+    if "query" not in data:
         msg = "Missing parameter:query"
         logger.error(msg)
         raise HTTPException(status_code=500, detail=msg)
@@ -229,9 +202,7 @@ async def registrar_products_search_get(request: Dict):
         "text": "Search is not implemented"
     }
 
-    logger.info(f"DONE: Search product request:{request}, response:{response}")
     return response
-
 
 
 #####
@@ -244,13 +215,11 @@ async def registrar_users_post(user: models.User):
     """
     Register user
     """
-    logger.info(f"START: Register user:{user}")
 
     response = None
     registry: Registry = state.gstate(STATE_REGISTRY)
     response = await registry.register_user(user)
 
-    logger.info(f"DONE: Register user:{user}, response:{response}")
     return response
 
 
@@ -259,13 +228,11 @@ async def registrar_users_get():
     """
     Get registered user
     """
-    logger.info("START: Get registered users")
 
     response = None
     registry: Registry = state.gstate(STATE_REGISTRY)
     response = await registry.retrieve_users()
 
-    logger.info(f"DONE: Get registered users, response:{response}")
     return response
 
 
@@ -274,7 +241,6 @@ async def registrar_users_uuid_get(uuid: str):
     """
     Get registered user
     """
-    logger.info(f"START: Get registered user uuid:{uuid}")
 
     response = None
     registry: Registry = state.gstate(STATE_REGISTRY)
@@ -284,7 +250,6 @@ async def registrar_users_uuid_get(uuid: str):
         logger.error(msg)
         raise HTTPException(status_code=404, detail=msg)
 
-    logger.info(f"DONE: Get registered user uuid:{uuid}, response:{response}")
     return response
 
 
@@ -294,7 +259,6 @@ async def registrar_users_email_get(email: str):
     Get registered users by email (user can be registered with
     multiple roles)
     """
-    logger.info(f"START: Get registered users email:{email}")
 
     response = None
     registry: Registry = state.gstate(STATE_REGISTRY)
@@ -304,7 +268,6 @@ async def registrar_users_email_get(email: str):
         logger.error(msg)
         raise HTTPException(status_code=404, detail=msg)
 
-    logger.info(f"DONE: Get registered users email:{email}, response:{response}")
     return response
 
 
@@ -313,7 +276,6 @@ async def registrar_users_role_email_get(role: str, email: str):
     """
     Get registered user by role/email (must be exact match)
     """
-    logger.info(f"START: Get registered user role:{role} email:{email}")
 
     response = None
     registry: Registry = state.gstate(STATE_REGISTRY)
@@ -323,7 +285,6 @@ async def registrar_users_role_email_get(role: str, email: str):
         logger.error(msg)
         raise HTTPException(status_code=404, detail=msg)
 
-    logger.info(f"DONE: Get registered user role:{role} email:{email}, response:{response}")
     return response
 
 
@@ -333,23 +294,22 @@ async def registrar_users_role_email_get(role: str, email: str):
 
 
 @app.post(ENDPOINT_PREFIX + "/auth/login")
-async def registrar_auth_login_post(request: Dict):
+async def registrar_auth_login_post(data: Dict):
     """
     Get registered guest
     """
-    logger.info(f"START: Login registered user request:{request}")
 
-    if "role" not in request:
+    if "role" not in data:
         msg = "Missing parameter:role"
         logger.error(msg)
         raise HTTPException(status_code=500, detail=msg)
 
-    if "email" not in request:
+    if "email" not in data:
         msg = "Missing parameter:email"
         logger.error(msg)
         raise HTTPException(status_code=500, detail=msg)
 
-    if "password" not in request:
+    if "password" not in data:
         msg = "Missing parameter:password"
         logger.error(msg)
         raise HTTPException(status_code=500, detail=msg)
@@ -357,9 +317,9 @@ async def registrar_auth_login_post(request: Dict):
     response = None
     try:
 
-        role = request["role"]
-        email = request["email"]
-        password = request["password"]
+        role = data["role"]
+        email = data["email"]
+        password = data["password"]
 
         registry: Registry = state.gstate(STATE_REGISTRY)
         response = await registry.auth_login_user(role, email, password)
@@ -374,31 +334,29 @@ async def registrar_auth_login_post(request: Dict):
         logger.error(msg)
         raise HTTPException(status_code=500, detail=msg)
 
-    logger.info(f"DONE: Login registered user request:{request}, response:{response}")
     return response
 
 
 @app.post(ENDPOINT_PREFIX + "/auth/logout")
-async def registrar_auth_logout_post(request: Dict):
+async def registrar_auth_logout_post(data: Dict):
     """
     Get registered guest
     """
-    logger.info(f"START: Logout registered user request:{request}")
 
-    if "role" not in request:
+    if "role" not in data:
         msg = "Missing parameter:role"
         logger.error(msg)
         raise HTTPException(status_code=500, detail=msg)
 
-    if "email" not in request:
+    if "email" not in data:
         msg = "Missing parameter:email"
         logger.error(msg)
         raise HTTPException(status_code=500, detail=msg)
 
     response = None
     try:
-        role = request["role"]
-        email = request["email"]
+        role = data["role"]
+        email = data["email"]
 
         registry: Registry = state.gstate(STATE_REGISTRY)
         response = await registry.auth_logout_user(role, email)
@@ -413,7 +371,6 @@ async def registrar_auth_logout_post(request: Dict):
         logger.error(msg)
         raise HTTPException(status_code=500, detail=msg)
 
-    logger.info(f"DONE: Logout registered user request:{request}, response:{response}")
     return response
 
 
@@ -422,13 +379,11 @@ async def registrar_getauth_statistics_get():
     """
     Get registered guest
     """
-    logger.info(f"START: Auth statistics")
 
     response = None
     registry: Registry = state.gstate(STATE_REGISTRY)
     response = await registry.auth_statistics()
 
-    logger.info(f"DONE: Auth statistics, response:{response}")
     return response
 
 
@@ -437,13 +392,11 @@ async def registrar_auth_status_get(email: str):
     """
     Get registered guest
     """
-    logger.info(f"START: Auth status")
 
     response = None
     registry: Registry = state.gstate(STATE_REGISTRY)
     response = await registry.auth_status(email)
 
-    logger.info(f"DONE: Auth statistics, response:{response}")
     return response
 
 
@@ -454,17 +407,15 @@ async def registrar_auth_status_get(email: str):
 @app.post(ENDPOINT_PREFIX + "/carts/purchase/")
 async def registrar_cart_post(cart: models.Cart):
     """
-    Register a cart... NOT SUPPORTED(note: registering cart is not
+    Register a cart... NOT SUPPORTED (note: registering cart is not
     available as carts are created when user(subscriber role)
     are registered)
     """
-    logger.info(f"START: Register cart:{cart}")
 
     response = None
     registry: Registry = state.gstate(STATE_REGISTRY)
     response = await registry.register_cart(cart)
 
-    logger.info(f"DONE: Register cart:{cart}, response:{response}")
     return response
 
 
@@ -473,13 +424,11 @@ async def registrar_carts_get():
     """
     Get registered carts
     """
-    logger.info("START: Get registered carts")
 
     response = None
     registry: Registry = state.gstate(STATE_REGISTRY)
     response = await registry.retrieve_carts()
 
-    logger.info(f"DONE: Get registered carts, response:{response}")
     return response
 
 
@@ -488,7 +437,6 @@ async def registrar_carts_uuid_get(uuid: str):
     """
     Get registered cart by uuid
     """
-    logger.info(f"START: Get registered cart uuid:{uuid}")
 
     response = None
     registry: Registry = state.gstate(STATE_REGISTRY)
@@ -498,7 +446,6 @@ async def registrar_carts_uuid_get(uuid: str):
         logger.error(msg)
         raise HTTPException(status_code=404, detail=msg)
 
-    logger.info(f"DONE: Get registered cart uuid:{uuid}, response:{response}")
     return response
 
 
@@ -507,7 +454,6 @@ async def registrar_carts_email_get(email: str):
     """
     Get registered cart by email
     """
-    logger.info(f"START: Get registered cart email:{email}")
 
     response = None
     registry: Registry = state.gstate(STATE_REGISTRY)
@@ -517,7 +463,6 @@ async def registrar_carts_email_get(email: str):
         logger.error(msg)
         raise HTTPException(status_code=404, detail=msg)
 
-    logger.info(f"DONE: Get registered cart email:{email}, response:{response}")
     return response
 
 
@@ -526,13 +471,11 @@ async def registrar_cart_uuid_item_post(uuid: str, product_uuid: str, artifact_u
     """
     Add item to a cart using UUID
     """
-    logger.info(f"START: Add item to a cart uuid:{uuid} product_uuid:{product_uuid} artifact_uuid:{artifact_uuid}")
 
     response = None
     registry: Registry = state.gstate(STATE_REGISTRY)
     response = await registry.register_cart_item_uuid(uuid, product_uuid, artifact_uuid)
 
-    logger.info(f"DONE: Add item to a cart uuid:{uuid} product_uuid:{product_uuid} artifact_uuid:{artifact_uuid}, response:{response}")
     return response
 
 
@@ -541,13 +484,11 @@ async def unregistrar_cart_uuid_item_delete(uuid: str, product_uuid: str, artifa
     """
     Remove an item from a cart
     """
-    logger.info(f"START: Delete an item from a cart uuid:{uuid} product_uuid:{product_uuid} artifact_uuid:{artifact_uuid}")
 
     response = None
     registry: Registry = state.gstate(STATE_REGISTRY)
     response = await registry.unregister_cart_item_uuid(uuid, product_uuid, artifact_uuid)
 
-    logger.info(f"DONE: Delete an item from a cart uuid:{uuid} product_uuid:{product_uuid} artifact_uuid:{artifact_uuid}, response:{response}")
     return response
 
 
@@ -556,13 +497,11 @@ async def registrar_cart_email_item_post(email: str, product_uuid: str, artifact
     """
     Add item to a cart using EMAIL
     """
-    logger.info(f"START: Add item to a cart email:{email} product_uuid:{product_uuid} artifact_uuid:{artifact_uuid}")
 
     response = None
     registry: Registry = state.gstate(STATE_REGISTRY)
     response = await registry.register_cart_item_email(email, product_uuid, artifact_uuid)
 
-    logger.info(f"DONE: Add item to a cart email:{email} product_uuid:{product_uuid} artifact_uuid:{artifact_uuid}, response:{response}")
     return response
 
 
@@ -571,13 +510,11 @@ async def unregistrar_cart_email_item_delete(email: str, product_uuid: str, arti
     """
     Delete an item from a cart
     """
-    logger.info(f"START: Delete an item from a cart email:{email} product_uuid:{product_uuid} artifact_uuid:{artifact_uuid}")
 
     response = None
     registry: Registry = state.gstate(STATE_REGISTRY)
     response = await registry.unregister_cart_item_email(email, product_uuid, artifact_uuid)
 
-    logger.info(f"DONE: Delete an item from a cart email:{email} product_uuid:{product_uuid} artifact_uuid:{artifact_uuid}, response:{response}")
     return response
 
 
@@ -587,19 +524,16 @@ async def unregistrar_cart_email_item_delete(email: str, product_uuid: str, arti
 
 
 @app.post(ENDPOINT_PREFIX + "/orders")
-async def registrar_order_post(request: Dict):
+async def registrar_order_post(data: Dict):
     """
     Register order (ie. purchase cart)
     """
-    logger.info(f"START: Register order request:{request}")
-
-    cart_uuid = _verify_parameter(request, "cartuuid")
+    cart_uuid = _verify_parameter(data, "cartuuid")
 
     response = None
     registry: Registry = state.gstate(STATE_REGISTRY)
     response = await registry.register_order(cart_uuid)
 
-    logger.info(f"DONE: Register order request:{request}, response:{response}")
     return response
 
 
@@ -608,13 +542,11 @@ async def registrar_orders_get():
     """
     Get registered orders
     """
-    logger.info("START: Get registered orders")
 
     response = None
     registry: Registry = state.gstate(STATE_REGISTRY)
     response = await registry.retrieve_orders()
 
-    logger.info(f"DONE: Get registered orders, response:{response}")
     return response
 
 
@@ -623,13 +555,11 @@ async def registrar_orders_uuid_get(uuid: str):
     """
     Get registered order by uuid
     """
-    logger.info(f"START: Get registered order uuid:{uuid}")
 
     response = None
     registry: Registry = state.gstate(STATE_REGISTRY)
     response = await registry.retrieve_order_uuid(uuid)
 
-    logger.info(f"DONE: Get registered order uuid:{uuid}, response:{response}")
     return response
 
 
@@ -638,7 +568,6 @@ async def registrar_orders_email_get(email: str):
     """
     Get registered order history by email
     """
-    logger.info(f"START: Get registered orders (history) email:{email}")
 
     # Note that all orders for this email are returned
     # and hence the response is a List
@@ -646,7 +575,6 @@ async def registrar_orders_email_get(email: str):
     registry: Registry = state.gstate(STATE_REGISTRY)
     response = await registry.retrieve_orders_email(email)
 
-    logger.info(f"DONE: Get registered orders (history) email:{email}, response:{response}")
     return response
 
 
@@ -660,13 +588,11 @@ async def registrar_health_get():
     """
     Get health information
     """
-    logger.info("START: Get health information")
 
     response = {
         "health": "OK"
     }
 
-    logger.info(f"DONE: Get health information, response:{response}")
     return response
 
 
@@ -675,13 +601,10 @@ async def registrar_metrics_get():
     """
     Get metrics information
     """
-    logger.info("START: Get metrics information")
-
     response = {
         "metrics": "some-metrics"
     }
 
-    logger.info(f"DONE: Get metrics information, response:{response}")
     return response
 
 
