@@ -214,7 +214,7 @@ class Registry():
     #####
 
     async def register_user(self, user: models.User):
-        logger.info(f"START: Registering user:{user}")
+        logger.info(f"Registering user:{user}")
 
         # FIX: When security is introduced, then ensure
         # only authenticated user are able to register
@@ -266,8 +266,6 @@ class Registry():
         response = {
             "uuid": xuuid
         }
-        logger.info(f"DONE: Registering user:{user}, response:{response}")
-
         return response
 
     async def retrieve_users(self):
@@ -476,11 +474,11 @@ class Registry():
         return response
 
     async def retrieve_cart_uuid(self, uuid: str):
-        logger.info(f"START: Retrieving cart uuid:{uuid}")
+        logger.info(f"Retrieving cart uuid:{uuid}")
         domain_key = self.domains["carts"]["key"]
         key = domain_key + "/" + uuid
         cart = self.etcd.retrieve(key)
-        logger.info(f"DONE: Retrieving cart uuid:{uuid}, cart:{cart}")
+        logger.info(f"Retrieved cart uuid:{uuid}, cart:{cart}")
         return cart
 
     async def retrieve_cart_email(self, email: str):
