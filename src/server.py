@@ -601,9 +601,9 @@ async def registrar_metrics_get():
     """
     Get metrics information
     """
-    response = {
-        "metrics": "some-metrics"
-    }
+
+    metrics = LoggingMiddleware.get_metrics()
+    response = metrics
 
     return response
 
@@ -671,8 +671,8 @@ if __name__ == "__main__":
     logger.info(f"Using registry:{registry}")
 
     logger.info(f"Using current working directory:{os.getcwd()}")
-    logger.info(f"START: Starting service on host:{args.host} port:{args.port}")
+    logger.info(f"Starting service on host:{args.host} port:{args.port}")
     uvicorn.run(app, host=args.host, port=args.port)
 
-    logger.info(f"DONE: Starting service on host:{args.host} port:{args.port}")
+    logger.info(f"Terminating service on host:{args.host} port:{args.port}")
 
