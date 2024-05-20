@@ -10,6 +10,7 @@ import logging
 import uuid
 from datetime import datetime
 from typing import List
+from fastapi import Request
 
 import utilities
 import models
@@ -666,7 +667,7 @@ class Registry():
     # ORDERS
     #####
 
-    async def register_order(self, cart_uuid: str):
+    async def register_order(self, request: Request, cart_uuid: str):
         logger.info(f"Registering order cart_uuid:{cart_uuid}")
 
         # FIX: Need to verify carts, user, etc...
@@ -685,7 +686,7 @@ class Registry():
         self.etcd.remove(key)
 
         # Create the order
-        immutable_order = await self._create_immutable_order(cart)
+        immutable_order = await self._create_immutable_order(request, cart)
         domain_key = self.domains["orders"]["key"]
         key = domain_key + "/" + immutable_order.uuid
         value = immutable_order.model_dump()
@@ -786,7 +787,7 @@ class Registry():
         xuser = await self.retrieve_user_role_email(role, email)
         return bool(xuser)
 
-    async def _create_immutable_order(self, cart: models.Cart) -> models.OrderImmutable:
+    async def _create_immutable_order(self, request: Request, cart: models.Cart) -> models.OrderImmutable:
         """
         Create an immutable order.
 
@@ -816,7 +817,7 @@ class Registry():
 
             # Get fully qualified product information
             logger.info(f"Acquiring fully qualified product:{product}")
-            artifact: models.Artifact = await self._retreve_artifact(product_uuid, artifact_uuid)
+            artifact: models.Artifact = await self._retrieve_artifact(request, product_uuid, artifact_uuid)
             # Check if fqproduct exists (raise not found)
 
             # Create the immutable item and add it
@@ -848,12 +849,19 @@ class Registry():
         )
         return immutable_order
 
-    async def _retreve_artifact(self, productuuid: str, artifactuuid: str) -> models.Artifact:
+    async def _retrieve_artifact(self, request: Request, productuuid: str, artifactuuid: str) -> models.Artifact:
         """Discover artifact"""
         logger.info(f"Discover artifact productuuid:{productuuid} artifactuuid:{artifactuuid}")
         service = ENPOINT_DATAPRODUCT + f"/uuid/{productuuid}/artifacts/{artifactuuid}"
         method = "GET"
-        artifact_dict = await utilities.httprequest(self.proxyhost, self.proxyport, service, method)
+        import constants
+        headers = {
+            constants.HEADER_USERNAME: request.headers.get(constants.HEADER_USERNAME),
+            constants.HEADER_CORRELATION_ID: request.headers.get(constants.HEADER_CORRELATION_ID)
+        }
+        artifact_dict = await utilities.httprequest(
+            self.proxyhost, self.proxyport, service,
+            method, headers=headers)
         artifact = models.Artifact(**artifact_dict)
 
         logger.info(f"Discover artifact productuuid:{productuuid} artifactuuid:{artifactuuid}, response:{artifact}")

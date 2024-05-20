@@ -13,7 +13,7 @@ STATE_TRACEID = "state-traceid"
 STATE_METRICS = "state-metrics"
 
 HEADER_USERNAME = "OSC-DM-Username"
-HEADER_CORRELATION_ID = "OSC-DM-Correllation-ID"
+HEADER_CORRELATION_ID = "OSC-DM-Correlation-ID"
 USERNAME_UNKNOWN = "unknown"
 
 class LoggingMiddleware(BaseHTTPMiddleware):
@@ -45,22 +45,22 @@ class LoggingMiddleware(BaseHTTPMiddleware):
         # Get the correlation id, and add it if it does not exist
         correlation_id = request.headers.get(HEADER_CORRELATION_ID)
         if correlation_id is None:
-            logger.warning(f"Missing header {HEADER_CORRELATION_ID}")
+            logger.warning(f"Missing header:{HEADER_CORRELATION_ID} url:{str(request.url)} headers:{request.headers} ")
             correlation_id = str(uuid.uuid4())
             headers = MutableHeaders(request._headers)
             headers[HEADER_CORRELATION_ID] = correlation_id
             request._headers = headers
-            logger.warning(f"Added header {HEADER_CORRELATION_ID}:{correlation_id}")
+            logger.warning(f"Added header:{HEADER_CORRELATION_ID}:{correlation_id} url:{str(request.url)} headers:{request.headers} ")
 
         # Get the username, and add it if it does not exist
         username = request.headers.get(HEADER_USERNAME)
         if username is None:
-            logger.warning(f"Missing header {HEADER_USERNAME}")
+            logger.warning(f"Missing header:{HEADER_USERNAME} url:{str(request.url)} headers:{request.headers} ")
             username = USERNAME_UNKNOWN
             headers = MutableHeaders(request._headers)
             headers[HEADER_USERNAME] = username
             request._headers = headers
-            logger.warning(f"Added header {HEADER_USERNAME}:{username}")
+            logger.warning(f"Added header:{HEADER_USERNAME}:{username} url:{str(request.url)} headers:{request.headers} ")
 
         # Get a trace identifier to track requests and responses logs
         trace_id = state.gstate(STATE_TRACEID)
@@ -77,7 +77,7 @@ class LoggingMiddleware(BaseHTTPMiddleware):
             "parameters": dict(request.query_params),
             "body": body
         }
-        logger.info(f"TRACE-{trace_id}-REQ:{request_info}")
+        logger.info(f"TRACE-{trace_id}:{correlation_id}-REQ:{request_info}")
 
         response = await call_next(request)
         status_code = response.status_code
@@ -120,7 +120,7 @@ class LoggingMiddleware(BaseHTTPMiddleware):
             "headers": response.headers,
             "body": response_body
         }
-        logger.info(f"TRACE-{trace_id}-RSP:{response_info}")
+        logger.info(f"TRACE-{trace_id}:{correlation_id}-RSP:{response_info}")
 
         state.gstate(STATE_TRACEID, trace_id + 1)
 
