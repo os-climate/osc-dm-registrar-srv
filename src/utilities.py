@@ -32,7 +32,7 @@ async def httprequest(host: str, port: int, service: str, method: str,
     Returns:
     - requests.Response: The response object
     """
-    logger.info(f"Issue request, method:{method} data:{data} obj:{obj} files:{files}")
+    logger.info(f"Issue request, method:{method} headers:{headers} data:{data} obj:{obj} files:{files}")
 
     url = f"http://{host}:{port}{service}"
     method = method.upper()
@@ -94,7 +94,7 @@ def shttprequest(host: str, port: int, service: str, method: str,
     Returns:
     - requests.Response: The response object
     """
-    logger.info(f"Issue request, method:{method} data:{data} obj:{obj} files:{files}")
+    logger.info(f"Issue request, method:{method} headers:{headers} data:{data} obj:{obj} files:{files}")
 
     url = f"http://{host}:{port}{service}"
     method = method.upper()

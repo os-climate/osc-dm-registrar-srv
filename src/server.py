@@ -13,7 +13,7 @@ import os
 import uuid
 import yaml
 
-from fastapi import FastAPI, Request, WebSocket, HTTPException
+from fastapi import FastAPI, Request, HTTPException
 from fastapi.websockets import WebSocketDisconnect
 import uvicorn
 
@@ -63,7 +63,6 @@ async def registrar_dump_get():
     """
     Dump all keys
     """
-
     response = None
     registry: Registry = state.gstate(STATE_REGISTRY)
     response = await registry.dump()
@@ -524,15 +523,19 @@ async def unregistrar_cart_email_item_delete(email: str, product_uuid: str, arti
 
 
 @app.post(ENDPOINT_PREFIX + "/orders")
-async def registrar_order_post(data: Dict):
+async def registrar_order_post(request: Request, data: Dict):
     """
     Register order (ie. purchase cart)
     """
+    logger.info(f"Using request:{request} header:{request.headers}")
     cart_uuid = _verify_parameter(data, "cartuuid")
 
+    # Note: the request is passed down the stack to allow
+    # certain headers to be used to track and correlate messages...
+    # There should be a better way to do this...
     response = None
     registry: Registry = state.gstate(STATE_REGISTRY)
-    response = await registry.register_order(cart_uuid)
+    response = await registry.register_order(request, cart_uuid)
 
     return response
 
@@ -588,11 +591,9 @@ async def registrar_health_get():
     """
     Get health information
     """
-
     response = {
         "health": "OK"
     }
-
     return response
 
 
@@ -601,10 +602,8 @@ async def registrar_metrics_get():
     """
     Get metrics information
     """
-
     metrics = LoggingMiddleware.get_metrics()
     response = metrics
-
     return response
 
 
