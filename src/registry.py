@@ -23,6 +23,7 @@ logger = logging.getLogger(__name__)
 import models
 from etcd import Etcd
 from bgsexception import BgsException, BgsNotFoundException
+import constants
 
 ENDPOINT_PREFIX = "/api"
 ENPOINT_DATAPRODUCT = ENDPOINT_PREFIX + "/dataproducts"
@@ -854,11 +855,16 @@ class Registry():
         logger.info(f"Discover artifact productuuid:{productuuid} artifactuuid:{artifactuuid}")
         service = ENPOINT_DATAPRODUCT + f"/uuid/{productuuid}/artifacts/{artifactuuid}"
         method = "GET"
-        import constants
-        headers = {
-            constants.HEADER_USERNAME: request.headers.get(constants.HEADER_USERNAME),
-            constants.HEADER_CORRELATION_ID: request.headers.get(constants.HEADER_CORRELATION_ID)
-        }
+
+        headers = None
+        if request.headers.get(constants.HEADER_USERNAME) and request.headers.get(constants.HEADER_CORRELATION_ID):
+            headers = {
+                constants.HEADER_USERNAME: request.headers.get(constants.HEADER_USERNAME),
+                constants.HEADER_CORRELATION_ID: request.headers.get(constants.HEADER_CORRELATION_ID),
+            }
+        else:
+            logger.warning(f"Missing HEADER_USERNAME or HEADER_CORRELATION_ID headers:{request.headers}")
+
         artifact_dict = await utilities.httprequest(
             self.proxyhost, self.proxyport, service,
             method, headers=headers)
