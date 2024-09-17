@@ -66,11 +66,30 @@ pip install pytest
 
 ## Creating a Docker Image
 
-A Dockefile is provided for this service.  A docker image for this
-service can be creating using the following script:
-~~~~
+
+A Dockerfile is provided for this service. A docker image for this service can be
+creating using the following script, which will create but not publish the image:
+
+```
 $PROJECT_DIR/bin/dockerize.sh
-~~~~
+```
+
+In order to publish this image the `DOCKER_TOKEN` environment variable
+must be set to a dockerhub token that is associated with the username set in the
+`DOCKER_USERNAME` environment variable. Additionally, the
+`DOCKER_REGISTRY` environment variable must be set if publishing
+to a custom registry. 
+
+Then the below command can be executed to create and publish an image,
+with the `--publish` argument controlling whether the image is published,
+and where it is published to. The `--latest` argument controls whether a
+specific version is published, or whether this version will also be published
+as "latest". The `--version` argument controls what specific version number
+the image will have when published.
+
+```console
+$PROJECT_DIR/bin/dockerize.sh --publish [false|custom|dockerhub] [--latest] [--version <version>]
+```
 
 ## Starting the Service
 
